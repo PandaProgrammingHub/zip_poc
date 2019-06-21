@@ -11,7 +11,8 @@ class App extends Component {
     this.handleDownload = this.handleDownload.bind(this);
     this.state = {
       fetchImg: null,
-      selectedImgs: null
+      selectedImgs: null,
+      downloadLoding:false
     };
   }
   componentDidMount() {
@@ -22,7 +23,7 @@ class App extends Component {
     fetch(url)
       .then(response => response.json())
       .then(data => {
-        // console.log("fetchImg=>", data.hits);
+        console.log("fetchImg=>", data.hits);
         this.setState({ fetchImg: data.hits });
       })
       .catch(error => {
@@ -30,10 +31,10 @@ class App extends Component {
       });
   };
   addImg = (arr, item) => arr.find((x) => x.id === item.id) || arr.push(item);
-  removeImg = (arr, item) => {
-    arr = arr.filter((x) => x.id !== item.id);
-    //return arr.push(item);
-  }
+  // removeImg = (arr, item) => {
+  //   arr = arr.filter((x) => x.id !== item.id);
+  //   //return arr.push(item);
+  // }
   handleCheckBox(e, img) {
     let arr = this.state.selectedImgs ? this.state.selectedImgs : [];
     if (e.target.checked) {
@@ -52,8 +53,9 @@ class App extends Component {
   handleDownload(e) {
     e.preventDefault(); 
     let zip = new JSZip();
-    let zipFilename = "multipleDownload.zip";
+    let zipFilename = "distynet.zip";
     let selectedImgs = this.state.selectedImgs;  
+    this.setState({downloadLoding:true});
     const urlToPromise = (url) => {
       return new Promise((resolve, reject)=>{
           JSZipUtils.getBinaryContent(url, (err, data) => {
@@ -73,6 +75,7 @@ class App extends Component {
     zip.generateAsync({type:"blob"})
     .then((blob)=> {
       saveAs(blob, zipFilename);
+      this.setState({downloadLoding:false});         
   }, (err) => {
   });
   }
@@ -87,7 +90,11 @@ class App extends Component {
         <div id="backHome">
           <a href="/" className="button info">Refresh</a>
           {this.state.selectedImgs ?
+            !this.state.downloadLoding ?
             <a href="/" className="button success" onClick={(e)=>this.handleDownload(e)}>Download</a>
+            :
+            <a  className="button ">Download Started!</a>
+            
             : null}
         </div>
         <table border="1" id="tableContainer">
